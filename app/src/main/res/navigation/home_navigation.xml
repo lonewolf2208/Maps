@@ -1,11 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/home_navigation"
     app:startDestination="@id/home2">
 
     <fragment
         android:id="@+id/home2"
         android:name="com.example.sploot.Home"
-        android:label="Home" />
+        android:label="Home" >
+        <action
+            android:id="@+id/action_home2_to_bottomSheet"
+            app:destination="@id/bottomSheet" />
+    </fragment>
+    <dialog
+        android:id="@+id/bottomSheet"
+        android:name="com.example.sploot.BottomSheet"
+        android:label="fragment_bottom_sheet"
+        tools:layout="@layout/fragment_bottom_sheet" />
 </navigation>
