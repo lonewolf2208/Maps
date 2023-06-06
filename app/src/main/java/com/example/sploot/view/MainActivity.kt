@@ -1,10 +1,11 @@
-package com.example.sploot
+package com.example.sploot.view
 
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.sploot.R
 
 class MainActivity : AppCompatActivity() {
     private var FINE_LOCATION=android.Manifest.permission.ACCESS_FINE_LOCATION

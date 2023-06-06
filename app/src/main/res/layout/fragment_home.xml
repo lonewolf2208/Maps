@@ -5,7 +5,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Home">
+    tools:context=".view.Home">
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -17,14 +17,15 @@
         android:name="com.google.android.gms.maps.SupportMapFragment" />
 
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textInputLayout"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="64dp"
             android:layout_marginStart="16dp"
             android:layout_marginTop="32dp"
-            app:boxStrokeColor="#A9A9A9"
-            app:boxStrokeWidth="2dp"
             android:layout_marginEnd="16dp"
+            app:boxStrokeColor="#A9A9A9"
+            app:boxStrokeWidth="4dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
@@ -36,5 +37,62 @@
                 android:text="Search Here ...."
                 android:textColor="#FFFFFF" />
         </com.google.android.material.textfield.TextInputLayout>
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textInputLayout"
+            android:layout_height="wrap_content">
+        <RelativeLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+
+            tools:ignore="HardcodedText">
+
+            <!--make sure to group the chips-->
+            <!--style attribute is mandatory
+                 for each of the chips-->
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chip_group"
+                app:singleSelection="true"
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipCpp"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Restaurants" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipJava"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Petrol" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipPython"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Parks" />
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipMuseum"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Museum" />
+
+            </com.google.android.material.chip.ChipGroup>
+
+        </RelativeLayout>
+        </HorizontalScrollView>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </FrameLayout>

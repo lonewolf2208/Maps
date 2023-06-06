@@ -1,13 +1,13 @@
-package com.example.sploot
+package com.example.sploot.view
 
 import android.os.Build
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import com.example.sploot.databinding.FragmentBottomSheetBinding
+import com.example.sploot.model.place_data
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 

@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/home2"
-        android:name="com.example.sploot.Home"
+        android:name="com.example.sploot.view.Home"
         android:label="Home" >
         <action
             android:id="@+id/action_home2_to_bottomSheet"
@@ -15,7 +15,7 @@
     </fragment>
     <dialog
         android:id="@+id/bottomSheet"
-        android:name="com.example.sploot.BottomSheet"
+        android:name="com.example.sploot.view.BottomSheet"
         android:label="fragment_bottom_sheet"
         tools:layout="@layout/fragment_bottom_sheet" />
 </navigation>

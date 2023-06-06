@@ -1,4 +1,4 @@
-package com.example.sploot
+package com.example.sploot.model
 
 import android.graphics.Bitmap
 import android.os.Parcelable
