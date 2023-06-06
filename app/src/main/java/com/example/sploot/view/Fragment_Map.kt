@@ -20,18 +20,12 @@ import com.example.sploot.viewmodel.HomeViewModel
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.libraries.places.api.Places
-import com.google.android.libraries.places.api.model.AutocompleteSessionToken
 import com.google.android.libraries.places.api.model.Place
-import com.google.android.libraries.places.api.model.PlaceTypes
-import com.google.android.libraries.places.api.model.RectangularBounds
 import com.google.android.libraries.places.api.net.*
 import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.AutocompleteActivity
@@ -40,7 +34,7 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 
 
-class Home : Fragment(), OnMapReadyCallback {
+class Fragment_Map : Fragment(), OnMapReadyCallback {
     private lateinit var mMap: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     val AUTOCOMPLETE_REQUEST_CODE = 1
@@ -61,8 +55,8 @@ class Home : Fragment(), OnMapReadyCallback {
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location: Location? ->
                 // Got last known location. In some rare situations this can be null.
-                homeViewModel.latitude.postValue(location!!.latitude)
-                homeViewModel.longitude.postValue(location.longitude)
+                homeViewModel.latitude.postValue((location?.latitude ?: 28.7041) as Double?)
+                homeViewModel.longitude.postValue((location?.longitude ?: 77.1025) as Double?)
 
             }
             .addOnFailureListener {
@@ -74,7 +68,7 @@ class Home : Fragment(), OnMapReadyCallback {
                 .findFragmentById(R.id.map) as SupportMapFragment
             mapFragment.getMapAsync(this)
         }
-        binding.search.setOnClickListener {
+        binding.textInputLayout.setOnClickListener {
             val fields = listOf(Place.Field.LAT_LNG, Place.Field.NAME)
             // Start the autocomplete intent.
             val intent = Autocomplete.IntentBuilder(AutocompleteActivityMode.FULLSCREEN, fields)
@@ -88,8 +82,14 @@ class Home : Fragment(), OnMapReadyCallback {
         }
     binding.chipGroup.setOnCheckedStateChangeListener(object : ChipGroup.OnCheckedStateChangeListener {
         override fun onCheckedChanged(group: ChipGroup, checkedIds: MutableList<Int>) {
-            val chip: Chip = group.findViewById(checkedIds[0])
-            homeViewModel.data_type.postValue(chip.text.toString())
+            if(!checkedIds.isNullOrEmpty()) {
+                val chip: Chip = group.findViewById(checkedIds[0])
+                homeViewModel.data_type.postValue(chip.text.toString())
+            }
+            else
+            {
+                homeViewModel.data_type.postValue("")
+            }
         }
     })
         return binding.root
@@ -106,35 +106,43 @@ class Home : Fragment(), OnMapReadyCallback {
                 .position(sydney)
                 .title("Marker")
         )
-        homeViewModel.data_type.observe(viewLifecycleOwner) {
-            when(it)
-            {
-                "Restaurants"->{  p0.setMapStyle(
-                    MapStyleOptions.loadRawResourceStyle(
-                        requireContext(), R.raw.restaurant));}
-                "Parks"->{p0.setMapStyle(
-                    MapStyleOptions.loadRawResourceStyle(
-                        requireContext(), R.raw.park));}
-                "Museum"->{p0.setMapStyle(
-                    MapStyleOptions.loadRawResourceStyle(
-                        requireContext(), R.raw.museum));}
-                "Petrol"->{p0.setMapStyle(
-                    MapStyleOptions.loadRawResourceStyle(
-                        requireContext(), R.raw.petrol));}
-                else->{p0.setMapStyle(
-                    MapStyleOptions.loadRawResourceStyle(
-                        requireContext(), R.raw.style))}
-
-            }
-        }
+        Log.d("home",homeViewModel.latitude.value.toString())
+//        p0.isMyLocationEnabled = true
+        mMap.isMyLocationEnabled=true
+        mMap.uiSettings.isMapToolbarEnabled=true
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
         mMap.animateCamera(CameraUpdateFactory.zoomTo(15F))
-        mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(requireContext(), R.raw.park))
+//        mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(requireContext(), R.raw.style))
+        when( homeViewModel.data_type.value)
+        {
+
+            "Medical"->{  mMap.setMapStyle(
+                MapStyleOptions.loadRawResourceStyle(
+                    requireContext(), R.raw.medical));}
+            "Parks"->{mMap.setMapStyle(
+                MapStyleOptions.loadRawResourceStyle(
+                    requireContext(), R.raw.park));}
+            "Business"->{mMap.setMapStyle(
+                MapStyleOptions.loadRawResourceStyle(
+                    requireContext(), R.raw.business));}
+            "Government"->{mMap.setMapStyle(
+                MapStyleOptions.loadRawResourceStyle(
+                    requireContext(), R.raw.government));}
+            else->{mMap.setMapStyle(
+                MapStyleOptions.loadRawResourceStyle(
+                    requireContext(), R.raw.style))}
+
+        }
         mMap.setOnPoiClickListener {
             val placeId = it.placeId.toString()
+
             val placesClient = Places.createClient(requireContext())
-            val placeFields = homeViewModel.placefields
+// Specify the fields to return.
+            val placeFields = listOf(Place.Field.ID, Place.Field.NAME,Place.Field.RATING,Place.Field.PHOTO_METADATAS,Place.Field.ADDRESS)
+
+// Construct a request object, passing the place ID and fields array.
             val request = FetchPlaceRequest.newInstance(placeId, placeFields)
+
             placesClient.fetchPlace(request)
                 .addOnSuccessListener { response: FetchPlaceResponse ->
                     val place = response.place
@@ -155,8 +163,7 @@ class Home : Fragment(), OnMapReadyCallback {
                     placesClient.fetchPhoto(photoRequest)
                         .addOnSuccessListener { fetchPhotoResponse: FetchPhotoResponse ->
                             val bitmap = fetchPhotoResponse.bitmap
-                            var data = place_data(place.name,place.address,
-                                (place.rating ?: 0) as Double,bitmap)
+                            var data = place_data(place.name,place.address,place.rating,bitmap)
                             var bundle =  Bundle()
                             bundle.putParcelable("data",data)
                             findNavController().navigate(R.id.bottomSheet,bundle)
@@ -196,7 +203,6 @@ class Home : Fragment(), OnMapReadyCallback {
                     }
                 }
                 AutocompleteActivity.RESULT_ERROR -> {
-
                     // TODO: Handle the error.
                     data?.let {
                         val status = Autocomplete.getStatusFromIntent(data)

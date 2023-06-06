@@ -3,19 +3,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/home_navigation"
-    app:startDestination="@id/home2">
-
-    <fragment
-        android:id="@+id/home2"
-        android:name="com.example.sploot.view.Home"
-        android:label="Home" >
-        <action
-            android:id="@+id/action_home2_to_bottomSheet"
-            app:destination="@id/bottomSheet" />
-    </fragment>
+    app:startDestination="@id/fragment_Map">
     <dialog
         android:id="@+id/bottomSheet"
         android:name="com.example.sploot.view.BottomSheet"
         android:label="fragment_bottom_sheet"
         tools:layout="@layout/fragment_bottom_sheet" />
+    <fragment
+        android:id="@+id/fragment_Map"
+        android:name="com.example.sploot.view.Fragment_Map"
+        android:label="fragment_home"
+        tools:layout="@layout/fragment_home" >
+        <action
+            android:id="@+id/action_fragment_Map_to_bottomSheet"
+            app:destination="@id/bottomSheet" />
+    </fragment>
 </navigation>
