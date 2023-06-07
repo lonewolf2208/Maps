@@ -36,7 +36,7 @@ class BottomSheet : BottomSheetDialogFragment() {
 // Create a Uri for the selected location
         // Inside the onMapClick method
 // Create a Uri for the selected location
-        binding.imageView.setOnClickListener {
+        binding.button.setOnClickListener {
             val gmmIntentUri: Uri =
                 Uri.parse("google.navigation:q=" + data.lat + "," + data.long)
 

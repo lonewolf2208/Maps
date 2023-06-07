@@ -3,6 +3,7 @@ package com.example.sploot.view
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.location.Location
 import android.net.Uri
 import android.os.Bundle
@@ -11,10 +12,13 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.RelativeLayout
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
+import com.example.sploot.BuildConfig
 import com.example.sploot.R
 import com.example.sploot.databinding.FragmentHomeBinding
 import com.example.sploot.model.place_data
@@ -40,6 +44,8 @@ class Fragment_Map : Fragment(), OnMapReadyCallback {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     val AUTOCOMPLETE_REQUEST_CODE = 1
     lateinit var homeViewModel: HomeViewModel
+    lateinit var mapFragment:SupportMapFragment
+    var flag= false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         homeViewModel = ViewModelProvider(this)[HomeViewModel::class.java]
@@ -53,7 +59,7 @@ class Fragment_Map : Fragment(), OnMapReadyCallback {
     ): View? {
         // Inflate the layout for this fragment
         var binding = FragmentHomeBinding.inflate(inflater, container, false)
-        Places.initialize(requireContext(), "AIzaSyA3zeQUA47kyCgI5XJFJMn6zybxb3jPqeQ")
+        Places.initialize(requireContext(), BuildConfig.API_KEY)
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location: Location? ->
                 // Got last known location. In some rare situations this can be null.
@@ -62,22 +68,16 @@ class Fragment_Map : Fragment(), OnMapReadyCallback {
 
             }
             .addOnFailureListener {
-//                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-//                val uri: Uri = Uri.fromParts("package",getActivity()?.getPackageName(), null)
-//                intent.data = uri
-//                startActivity(intent)
-//                ActivityCompat.requestPermissions(requireActivity(),permission,1234)
-                Log.d("asdasd",it.message.toString())
-                Toast.makeText(requireContext(),"Please grant location permission to continue using the app", Toast.LENGTH_LONG).show()
             }
         homeViewModel.latitude.observe(
             viewLifecycleOwner
         ) {
-            val mapFragment = childFragmentManager
+             mapFragment = childFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
             mapFragment.getMapAsync(this)
         }
         binding.textInputLayout.setOnClickListener {
+            flag=true
             val fields = listOf(Place.Field.LAT_LNG, Place.Field.NAME)
             // Start the autocomplete intent.
             val intent = Autocomplete.IntentBuilder(AutocompleteActivityMode.FULLSCREEN, fields)
@@ -88,6 +88,12 @@ class Fragment_Map : Fragment(), OnMapReadyCallback {
             val mapFragment = childFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
             mapFragment.getMapAsync(this)
+            val locationButton= (mapFragment.view?.findViewById<View>(Integer.parseInt("1"))?.parent as View).findViewById<View>(Integer.parseInt("2"))
+            val rlp=locationButton.layoutParams as (RelativeLayout.LayoutParams)
+            // position on right bottom
+            rlp.addRule(RelativeLayout.ALIGN_PARENT_TOP,0)
+            rlp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM,RelativeLayout.TRUE)
+            rlp.setMargins(0,0,30,30);
         }
         binding.chipGroup.setOnCheckedStateChangeListener { group, checkedIds ->
             if (!checkedIds.isNullOrEmpty()) {
@@ -112,12 +118,21 @@ class Fragment_Map : Fragment(), OnMapReadyCallback {
                 .title("Marker")
         )
         Log.d("home", homeViewModel.latitude.value.toString())
-//        p0.isMyLocationEnabled = true
+
         mMap.isMyLocationEnabled = true
         mMap.uiSettings.isMapToolbarEnabled = true
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
         mMap.animateCamera(CameraUpdateFactory.zoomTo(15F))
-//        mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(requireContext(), R.raw.style))
+
+
+
+        //Setting the location button to bottom right
+        val locationButton= (mapFragment.view?.findViewById<View>(Integer.parseInt("1"))?.parent as View).findViewById<View>(Integer.parseInt("2"))
+        val rlp=locationButton.layoutParams as (RelativeLayout.LayoutParams)
+        // position on right bottom
+        rlp.addRule(RelativeLayout.ALIGN_PARENT_TOP,0)
+        rlp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM,RelativeLayout.TRUE)
+        rlp.setMargins(0,0,30,30);
         when (homeViewModel.data_type.value) {
             "Medical" -> {
                 mMap.setMapStyle(
@@ -146,6 +161,14 @@ class Fragment_Map : Fragment(), OnMapReadyCallback {
                         requireContext(), R.raw.government
                     )
                 );
+            }
+            "School" ->{
+                mMap.setMapStyle(
+                    MapStyleOptions.loadRawResourceStyle(
+                        requireContext(), R.raw.school
+                    )
+                );
+
             }
             else -> {
                 mMap.setMapStyle(
@@ -220,7 +243,6 @@ class Fragment_Map : Fragment(), OnMapReadyCallback {
                         val place = Autocomplete.getPlaceFromIntent(data)
                         homeViewModel.latitude.postValue(place.latLng.latitude)
                         homeViewModel.longitude.postValue(place.latLng.longitude)
-
                     }
                 }
                 AutocompleteActivity.RESULT_ERROR -> {
@@ -236,5 +258,32 @@ class Fragment_Map : Fragment(), OnMapReadyCallback {
             return
         }
         super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    @SuppressLint("MissingPermission")
+    override fun onResume() {
+        super.onResume()
+        fusedLocationClient.lastLocation
+            .addOnSuccessListener { location: Location? ->
+                // Got last known location. In some rare situations this can be null.
+                if(!flag) {
+                    homeViewModel.latitude.postValue((location?.latitude ?: 35.27041) as Double?)
+                    homeViewModel.longitude.postValue((location?.longitude ?: 48.1025) as Double?)
+                }
+                flag=false
+
+            }
+            .addOnFailureListener {
+                Log.d("asdasd",it.message.toString())
+//                Toast.makeText(requireContext(),"Please grant location permission to continue using the app", Toast.LENGTH_LONG).show()
+            }
+
+        if(ContextCompat.checkSelfPermission(requireContext(),android.Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED) {
+            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+            Toast.makeText(requireContext(),"Please grant location permission to continue using the app", Toast.LENGTH_LONG).show()
+            val uri: Uri = Uri.fromParts("package", getActivity()?.getPackageName(), null)
+            intent.data = uri
+            startActivity(intent)
+        }
     }
 }
