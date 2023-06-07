@@ -4,13 +4,16 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.android.libraries.places.api.model.Place
 
-class HomeViewModel: ViewModel() {
+class HomeViewModel : ViewModel() {
     var latitude = MutableLiveData<Double>()
-    var longitude  = MutableLiveData<Double>()
-    var data_type= MutableLiveData<String>()
+    var longitude = MutableLiveData<Double>()
+    var data_type = MutableLiveData<String>()
     var placefields = listOf(
-        Place.Field.ID, Place.Field.NAME,
+        Place.Field.ID,
+        Place.Field.NAME,
         Place.Field.RATING,
         Place.Field.PHOTO_METADATAS,
-        Place.Field.ADDRESS)
+        Place.Field.ADDRESS,
+        Place.Field.LAT_LNG
+    )
 }

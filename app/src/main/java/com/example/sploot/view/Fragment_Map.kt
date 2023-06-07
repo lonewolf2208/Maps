@@ -4,7 +4,9 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.location.Location
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -31,7 +33,6 @@ import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.AutocompleteActivity
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.google.android.material.chip.Chip
-import com.google.android.material.chip.ChipGroup
 
 
 class Fragment_Map : Fragment(), OnMapReadyCallback {
@@ -41,9 +42,10 @@ class Fragment_Map : Fragment(), OnMapReadyCallback {
     lateinit var homeViewModel: HomeViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        homeViewModel=ViewModelProvider(this)[HomeViewModel::class.java]
+        homeViewModel = ViewModelProvider(this)[HomeViewModel::class.java]
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
     }
+
     @SuppressLint("MissingPermission")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -55,14 +57,21 @@ class Fragment_Map : Fragment(), OnMapReadyCallback {
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location: Location? ->
                 // Got last known location. In some rare situations this can be null.
-                homeViewModel.latitude.postValue((location?.latitude ?: 28.7041) as Double?)
-                homeViewModel.longitude.postValue((location?.longitude ?: 77.1025) as Double?)
+                homeViewModel.latitude.postValue((location?.latitude ?: 35.27041) as Double?)
+                homeViewModel.longitude.postValue((location?.longitude ?: 48.1025) as Double?)
 
             }
             .addOnFailureListener {
-                Toast.makeText(requireContext(), it.toString(), Toast.LENGTH_SHORT).show()
+//                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+//                val uri: Uri = Uri.fromParts("package",getActivity()?.getPackageName(), null)
+//                intent.data = uri
+//                startActivity(intent)
+//                ActivityCompat.requestPermissions(requireActivity(),permission,1234)
+                Log.d("asdasd",it.message.toString())
+                Toast.makeText(requireContext(),"Please grant location permission to continue using the app", Toast.LENGTH_LONG).show()
             }
-        homeViewModel.latitude.observe(viewLifecycleOwner
+        homeViewModel.latitude.observe(
+            viewLifecycleOwner
         ) {
             val mapFragment = childFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
@@ -75,23 +84,19 @@ class Fragment_Map : Fragment(), OnMapReadyCallback {
                 .build(requireContext())
             startActivityForResult(intent, AUTOCOMPLETE_REQUEST_CODE);
         }
-        homeViewModel.data_type.observe(viewLifecycleOwner){
+        homeViewModel.data_type.observe(viewLifecycleOwner) {
             val mapFragment = childFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
             mapFragment.getMapAsync(this)
         }
-    binding.chipGroup.setOnCheckedStateChangeListener(object : ChipGroup.OnCheckedStateChangeListener {
-        override fun onCheckedChanged(group: ChipGroup, checkedIds: MutableList<Int>) {
-            if(!checkedIds.isNullOrEmpty()) {
+        binding.chipGroup.setOnCheckedStateChangeListener { group, checkedIds ->
+            if (!checkedIds.isNullOrEmpty()) {
                 val chip: Chip = group.findViewById(checkedIds[0])
                 homeViewModel.data_type.postValue(chip.text.toString())
-            }
-            else
-            {
+            } else {
                 homeViewModel.data_type.postValue("")
             }
         }
-    })
         return binding.root
     }
 
@@ -106,43 +111,56 @@ class Fragment_Map : Fragment(), OnMapReadyCallback {
                 .position(sydney)
                 .title("Marker")
         )
-        Log.d("home",homeViewModel.latitude.value.toString())
+        Log.d("home", homeViewModel.latitude.value.toString())
 //        p0.isMyLocationEnabled = true
-        mMap.isMyLocationEnabled=true
-        mMap.uiSettings.isMapToolbarEnabled=true
+        mMap.isMyLocationEnabled = true
+        mMap.uiSettings.isMapToolbarEnabled = true
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
         mMap.animateCamera(CameraUpdateFactory.zoomTo(15F))
 //        mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(requireContext(), R.raw.style))
-        when( homeViewModel.data_type.value)
-        {
-
-            "Medical"->{  mMap.setMapStyle(
-                MapStyleOptions.loadRawResourceStyle(
-                    requireContext(), R.raw.medical));}
-            "Parks"->{mMap.setMapStyle(
-                MapStyleOptions.loadRawResourceStyle(
-                    requireContext(), R.raw.park));}
-            "Business"->{mMap.setMapStyle(
-                MapStyleOptions.loadRawResourceStyle(
-                    requireContext(), R.raw.business));}
-            "Government"->{mMap.setMapStyle(
-                MapStyleOptions.loadRawResourceStyle(
-                    requireContext(), R.raw.government));}
-            else->{mMap.setMapStyle(
-                MapStyleOptions.loadRawResourceStyle(
-                    requireContext(), R.raw.style))}
+        when (homeViewModel.data_type.value) {
+            "Medical" -> {
+                mMap.setMapStyle(
+                    MapStyleOptions.loadRawResourceStyle(
+                        requireContext(), R.raw.medical
+                    )
+                );
+            }
+            "Parks" -> {
+                mMap.setMapStyle(
+                    MapStyleOptions.loadRawResourceStyle(
+                        requireContext(), R.raw.park
+                    )
+                );
+            }
+            "Business" -> {
+                mMap.setMapStyle(
+                    MapStyleOptions.loadRawResourceStyle(
+                        requireContext(), R.raw.business
+                    )
+                );
+            }
+            "Government" -> {
+                mMap.setMapStyle(
+                    MapStyleOptions.loadRawResourceStyle(
+                        requireContext(), R.raw.government
+                    )
+                );
+            }
+            else -> {
+                mMap.setMapStyle(
+                    MapStyleOptions.loadRawResourceStyle(
+                        requireContext(), R.raw.style
+                    )
+                )
+            }
 
         }
         mMap.setOnPoiClickListener {
             val placeId = it.placeId.toString()
-
             val placesClient = Places.createClient(requireContext())
-// Specify the fields to return.
-            val placeFields = listOf(Place.Field.ID, Place.Field.NAME,Place.Field.RATING,Place.Field.PHOTO_METADATAS,Place.Field.ADDRESS)
-
-// Construct a request object, passing the place ID and fields array.
+            val placeFields = homeViewModel.placefields
             val request = FetchPlaceRequest.newInstance(placeId, placeFields)
-
             placesClient.fetchPlace(request)
                 .addOnSuccessListener { response: FetchPlaceResponse ->
                     val place = response.place
@@ -163,10 +181,17 @@ class Fragment_Map : Fragment(), OnMapReadyCallback {
                     placesClient.fetchPhoto(photoRequest)
                         .addOnSuccessListener { fetchPhotoResponse: FetchPhotoResponse ->
                             val bitmap = fetchPhotoResponse.bitmap
-                            var data = place_data(place.name,place.address,place.rating,bitmap)
-                            var bundle =  Bundle()
-                            bundle.putParcelable("data",data)
-                            findNavController().navigate(R.id.bottomSheet,bundle)
+                            var data = place_data(
+                                place.name,
+                                place.address,
+                                place.rating,
+                                bitmap,
+                                place.latLng.latitude,
+                                place.latLng.longitude
+                            )
+                            var bundle = Bundle()
+                            bundle.putParcelable("data", data)
+                            findNavController().navigate(R.id.bottomSheet, bundle)
                         }.addOnFailureListener { exception: Exception ->
                             if (exception is ApiException) {
                                 Log.e("", "Place not found: " + exception.message)
@@ -174,17 +199,14 @@ class Fragment_Map : Fragment(), OnMapReadyCallback {
                             }
 
                         }
-
-
                 }.addOnFailureListener { exception: Exception ->
                     if (exception is ApiException) {
+                        Log.d("asdas",exception.toString())
                         Toast.makeText(
                             requireContext(),
                             "Place not found: ${exception}",
                             Toast.LENGTH_SHORT
                         ).show()
-                        val statusCode = exception.statusCode
-                        TODO("Handle error with given status code")
                     }
                 }
         }
@@ -194,26 +216,22 @@ class Fragment_Map : Fragment(), OnMapReadyCallback {
         if (requestCode == AUTOCOMPLETE_REQUEST_CODE) {
             when (resultCode) {
                 Activity.RESULT_OK -> {
-//                    Toast.makeText(requireContext(),"Ok",Toast.LENGTH_LONG).show()
                     data?.let {
                         val place = Autocomplete.getPlaceFromIntent(data)
                         homeViewModel.latitude.postValue(place.latLng.latitude)
                         homeViewModel.longitude.postValue(place.latLng.longitude)
-                        Log.i("adsasd", "Place: ${place.latLng.latitude}, ${place.latLng.longitude}")
+
                     }
                 }
                 AutocompleteActivity.RESULT_ERROR -> {
                     // TODO: Handle the error.
                     data?.let {
                         val status = Autocomplete.getStatusFromIntent(data)
-//                        Toast.makeText(requireContext(),status.statusMessage.toString(),Toast.LENGTH_LONG).show()
+                        Toast.makeText(requireContext(),status.statusMessage.toString(),Toast.LENGTH_LONG).show()
 //                        Log.i(TAG, status.statusMessage)
                     }
                 }
-                Activity.RESULT_CANCELED -> {
-//                    Toast.makeText(requireContext(),"Cancelled",Toast.LENGTH_LONG).show()
-                    // The user canceled the operation.
-                }
+
             }
             return
         }

@@ -1,5 +1,7 @@
 package com.example.sploot.view
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -30,6 +32,30 @@ class BottomSheet : BottomSheetDialogFragment() {
         binding.placeName.text=data?.name.toString()
         binding.ratingBar.rating= data?.rating!!.toFloat()
         binding.imageView.setImageBitmap(data?.photos)
+        // Inside the onMapClick method
+// Create a Uri for the selected location
+        // Inside the onMapClick method
+// Create a Uri for the selected location
+        binding.imageView.setOnClickListener {
+            val gmmIntentUri: Uri =
+                Uri.parse("google.navigation:q=" + data.lat + "," + data.long)
+
+// Create an intent with the Uri
+
+// Create an intent with the Uri
+            val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+
+// Set the package to "com.google.android.apps.maps" to ensure it opens in Google Maps
+
+// Set the package to "com.google.android.apps.maps" to ensure it opens in Google Maps
+            mapIntent.setPackage("com.google.android.apps.maps")
+
+
+// Start the intent
+
+// Start the intent
+            startActivity(mapIntent)
+        }
         return binding.root
     }
 

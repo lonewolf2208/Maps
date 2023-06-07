@@ -18,4 +18,9 @@
             android:id="@+id/action_fragment_Map_to_bottomSheet"
             app:destination="@id/bottomSheet" />
     </fragment>
+    <fragment
+        android:id="@+id/offlineScreen"
+        android:name="com.example.sploot.view.OfflineScreen"
+        android:label="fragment_offline_screen"
+        tools:layout="@layout/fragment_offline_screen" />
 </navigation>

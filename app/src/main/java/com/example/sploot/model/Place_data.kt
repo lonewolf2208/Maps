@@ -9,5 +9,7 @@ data class place_data(
     val name:String,
     val adress:String,
     val rating: Double,
-    val photos: Bitmap
+    val photos: Bitmap,
+    val lat:Double,
+    val long:Double
 ):Parcelable
